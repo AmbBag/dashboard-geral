@@ -114,8 +114,8 @@ const totalLinha = document.getElementById("total-geral");
 function criarTabela() {
   tbody.innerHTML = "";
 
-  for (let i = 1; i <= 5; i++) { // <-- até CAF 05
-    const nome = `CEL. ${String(i).padStart(2, "0")}`;
+  for (let i = 1; i <= 5; i++) {
+    const nome = `CEL. ${String(i).padStart(2,"0")}`;
     const tr = document.createElement("tr");
 
     tr.innerHTML = `
@@ -148,7 +148,7 @@ function buscar() {
   let totalGeral = 0;
   let totalTendencia = 0;
 
-  for (let i = 1; i <= 10; i++) {
+  for (let i = 1; i <= 5; i++) {
 
     const celula = `Gw${String(i).padStart(2,"0")}`;
     const nome = `CEL. ${String(i).padStart(2,"0")}`;
@@ -169,18 +169,23 @@ function buscar() {
           if (identificarHoraExtra(txt)) extra++;
         });
 
-        const total = horas.reduce((a,b)=>a+b,0);
+        const totalNormal = horas.reduce((a,b)=>a+b,0);
+        const total = totalNormal + extra; // 👈 EXTRA ENTRA NO TOTAL
 
         let metaBase;
         if (dataInput !== hoje) metaBase = META_DIA;
         else {
           const agora = new Date();
-          metaBase = (agora.getHours() > 16 || (agora.getHours() === 16 && agora.getMinutes() >= 48))
-            ? META_DIA
-            : metaDiaDinamica();
+          metaBase =
+            (agora.getHours() > 16 || (agora.getHours() === 16 && agora.getMinutes() >= 48))
+              ? META_DIA
+              : metaDiaDinamica();
         }
 
-        let tendencia = metaBase > 0 ? Math.round((total / metaBase) * META_DIA) : 0;
+        let tendencia = metaBase > 0
+          ? Math.round((totalNormal / metaBase) * META_DIA)
+          : 0;
+
         const capacidade = Math.round((tendencia / META_DIA) * 100);
         const desvio = tendencia - META_DIA;
 
@@ -203,7 +208,7 @@ function buscar() {
         tds[14].className = desvio >= 0 ? "verde" : "vermelho";
 
         totalExtra += extra;
-        totalGeral += total;
+        totalGeral += total; // 👈 EXTRA SOMA NO TOTAL GERAL
         totalTendencia += tendencia;
 
         totalLinha.innerHTML = `
@@ -217,10 +222,6 @@ function buscar() {
       });
   }
 }
-
-// =======================
-// GOOGLE SHEETS
-// =======================
 const SHEET_ID = "1Vn9PtS6VIG7N9edoBpWRYr9LsWqn1lXuQkxibYY7xiE";
 const SHEET_API_KEY = "AIzaSyBg75NHA-Vi2F-CY9L-Kr4CMBzhWuUJayg";
 const SHEET_RANGE = "A:C";
@@ -237,7 +238,7 @@ function buscarOpsDia() {
   const promessas = [];
 
   for (let i = 1; i <= 10; i++) {
-    const celula = `Gw${String(i).padStart(2,"0")}`;
+    const celula = `Celula${String(i).padStart(2,"0")}`;
 
     promessas.push(
       firebase.database()
@@ -313,4 +314,3 @@ document.addEventListener("DOMContentLoaded", () => {
     buscarOpsDia();
   }, 90000);
 });
-
