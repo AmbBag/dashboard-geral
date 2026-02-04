@@ -143,6 +143,7 @@ function buscar() {
   const hoje = hojeISO();
   const data = formatarData(dataInput);
 
+  // ZERA TOTAIS A CADA BUSCA
   let totalHoras = Array(9).fill(0);
   let totalExtra = 0;
   let totalGeral = 0;
@@ -169,18 +170,24 @@ function buscar() {
           if (identificarHoraExtra(txt)) extra++;
         });
 
-        const total = horas.reduce((a,b)=>a+b,0);
+        const totalNormal = horas.reduce((a,b)=>a+b,0);
+        const total = totalNormal + extra;
+
 
         let metaBase;
         if (dataInput !== hoje) metaBase = META_DIA;
         else {
           const agora = new Date();
-          metaBase = (agora.getHours() > 16 || (agora.getHours() === 16 && agora.getMinutes() >= 48))
-            ? META_DIA
-            : metaDiaDinamica();
+          metaBase =
+            (agora.getHours() > 16 || (agora.getHours() === 16 && agora.getMinutes() >= 48))
+              ? META_DIA
+              : metaDiaDinamica();
         }
 
-        let tendencia = metaBase > 0 ? Math.round((total / metaBase) * META_DIA) : 0;
+        let tendencia = metaBase > 0
+          ? Math.round((total / metaBase) * META_DIA)
+          : 0;
+
         const capacidade = Math.round((tendencia / META_DIA) * 100);
         const desvio = tendencia - META_DIA;
 
@@ -193,7 +200,9 @@ function buscar() {
           totalHoras[idx] += v;
         });
 
+        // COLUNA HORA EXTRA (LINHA)
         tds[10].textContent = extra;
+
         tds[11].textContent = total;
         tds[12].textContent = tendencia;
         tds[12].className = cor(tendencia, META_DIA);
@@ -202,10 +211,12 @@ function buscar() {
         tds[14].textContent = desvio;
         tds[14].className = desvio >= 0 ? "verde" : "vermelho";
 
+        // >>> SOMA APENAS DAS HORAS EXTRAS <<<
         totalExtra += extra;
         totalGeral += total;
         totalTendencia += tendencia;
 
+        // TOTAL FINAL
         totalLinha.innerHTML = `
           <td><b>TOTAL</b></td>
           ${totalHoras.map(v => `<td>${v}</td>`).join("")}
@@ -218,9 +229,6 @@ function buscar() {
   }
 }
 
-// =======================
-// GOOGLE SHEETS
-// =======================
 const SHEET_ID = "1Vn9PtS6VIG7N9edoBpWRYr9LsWqn1lXuQkxibYY7xiE";
 const SHEET_API_KEY = "AIzaSyBg75NHA-Vi2F-CY9L-Kr4CMBzhWuUJayg";
 const SHEET_RANGE = "A:C";
@@ -313,4 +321,3 @@ document.addEventListener("DOMContentLoaded", () => {
     buscarOpsDia();
   }, 90000);
 });
-
